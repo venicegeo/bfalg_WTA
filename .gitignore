@@ -1,0 +1,15 @@
+# Add any directories, files, or patterns you don't want to be tracked by version control
+*.pyc
+.*.swp
+*.log
+*~
+*.egg-info
+build/
+dist/
+*.eggs
+MANIFEST
+.DS_Store
+.idea
+.tox
+.coverage
+.cache
