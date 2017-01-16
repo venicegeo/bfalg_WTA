@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 beachfront-py
-https://github.com/venicegeo/beachfront-py
+https://github.com/venicegeo/bfalg_WTA
 Copyright 2017, RadiantBlue Technologies, Inc.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
