@@ -287,11 +287,33 @@ def VectorizeBinary(binary,outName=None):
 
     return geojson
 
-def WTA_Service(img_path, outName=None, method=1, percentage=0.25):
+def WTA_deprecated(img_path, outName=None, method=1, percentage=0.25):
     s1 = outName.find('.')
     tempOut = '%s_binary.tif' % outName[:s1]
     WinnerTakesAll(img_path, outName = tempOut, method=method, percentage=percentage)
     VectorizeBinary(tempOut, outName=outName)
+
+
+def WTA_Service(img_path, outName=None, method=1, percentage=0.25):
+    s1 = outName.find('.')
+    #tempOut = '%s_binary.tif' % outName[:s1]
+    binary = WinnerTakesAll(img_path, method=method, percentage=percentage)
+    imgSrc = gippy.GeoImage(img_path)
+    geoimg = imgSrc[0]
+    geoimg.write(binary)
+
+    # vectorize thresholded (ie now binary) image
+    geoimg.set_nodata(3)
+    coastline = bfvec.potrace(geoimg)
+
+    # convert coordinates to GeoJSON
+    geojson = bfvec.to_geojson(coastline, source=geoimg.basename())
+
+    # write geojson output file
+    with open(outName, 'w') as f:
+        f.write(json.dumps(geojson))
+
+    return geojson
 
 
 def usage():
@@ -310,6 +332,7 @@ if __name__ == '__main__':
     out_path = None
     method = 1
     percentage = 0.25
+    version = None
 
     for i in range(len(sys.argv)-1):
         arg = sys.argv[i]
@@ -321,11 +344,16 @@ if __name__ == '__main__':
             method = int(sys.argv[i+1])
         elif arg == '-p':
             percentage = float(sys.argv[i+1])
+        elif arg == '-v':
+            version = float(sys.argv[i+1])
 
     if img_path is None:
         usage()
     if out_path is None:
         usage()
 
-    WTA_Service(img_path, out_path, method=method, percentage=percentage)
+    if version is not None:
+        WTA_deprecated(img_path, out_path, method=method, percentage=percentage)
+    else:
+        WTA_Service(img_path, out_path, method=method, percentage=percentage)
     sys.exit(0)
