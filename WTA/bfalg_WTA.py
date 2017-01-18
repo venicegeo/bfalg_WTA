@@ -299,7 +299,7 @@ def WTA_Service(img_path, outName=None, method=1, percentage=0.25):
     #tempOut = '%s_binary.tif' % outName[:s1]
     binary = WinnerTakesAll(img_path, method=method, percentage=percentage)
     imgSrc = gippy.GeoImage(img_path)
-    geoimg = imgSrc[0]
+    geoimg= gippy.GeoImage.create_from(imgSrc, '', nb=1, dtype='byte', format='MEM')
     geoimg.write(binary)
 
     # vectorize thresholded (ie now binary) image
