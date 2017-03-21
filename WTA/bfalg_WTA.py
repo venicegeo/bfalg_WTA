@@ -264,7 +264,7 @@ def WinnerTakesAll(img_path, outName=None, method=1, percentage=0.25):
         return binary
    
 
-def VectorizeBinary(binary,outName=None):
+def VectorizeBinary(binary,outName=None, simple=None):
     # ISSUES:
     #       Has to be read by gippy from file, so intermediate binary image needs to be written to file
 
@@ -285,16 +285,20 @@ def VectorizeBinary(binary,outName=None):
     with open(outName, 'w') as f:
         f.write(json.dumps(geojson))
 
+    # simplify geojson
+    if simple is not None:
+        outName = bfvec.simplify(outName, tolerance=simple)
+
     return geojson
 
-def WTA_deprecated(img_path, outName=None, method=1, percentage=0.25):
+def WTA_deprecated(img_path, outName=None, method=1, percentage=0.25, simple=None):
     s1 = outName.find('.')
     tempOut = '%s_binary.tif' % outName[:s1]
     WinnerTakesAll(img_path, outName = tempOut, method=method, percentage=percentage)
-    VectorizeBinary(tempOut, outName=outName)
+    VectorizeBinary(tempOut, outName=outName, simple=simple)
 
 
-def WTA_Service(img_path, outName=None, method=1, percentage=0.25):
+def WTA_Service(img_path, outName=None, method=1, percentage=0.25, simple=None):
     s1 = outName.find('.')
     #tempOut = '%s_binary.tif' % outName[:s1]
     binary = WinnerTakesAll(img_path, method=method, percentage=percentage)
@@ -312,6 +316,10 @@ def WTA_Service(img_path, outName=None, method=1, percentage=0.25):
     # write geojson output file
     with open(outName, 'w') as f:
         f.write(json.dumps(geojson))
+
+    # simplify geojson
+    if simple is not None:
+        outName = bfvec.simplify(outName, tolerance=simple)
 
     return geojson
 
@@ -333,6 +341,7 @@ if __name__ == '__main__':
     method = 1
     percentage = 0.25
     version = None
+    simple = None
 
     for i in range(len(sys.argv)-1):
         arg = sys.argv[i]
@@ -346,6 +355,8 @@ if __name__ == '__main__':
             percentage = float(sys.argv[i+1])
         elif arg == '-v':
             version = float(sys.argv[i+1])
+        elif arg == '-s':
+            simple = float(sys.argv[i+1])
 
     if img_path is None:
         usage()
@@ -353,7 +364,7 @@ if __name__ == '__main__':
         usage()
 
     if version is not None:
-        WTA_deprecated(img_path, out_path, method=method, percentage=percentage)
+        WTA_deprecated(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
     else:
-        WTA_Service(img_path, out_path, method=method, percentage=percentage)
+        WTA_Service(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
     sys.exit(0)
