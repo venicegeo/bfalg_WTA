@@ -1,11 +1,11 @@
-#Description#
+# Description
 
 bfalg_WTA is a Beachfront service that extracts shorelines from RapidEye satellite imagery.  This service utilizes a winner-takes-all approach to shoreline extraction, rather than relying on any single band ratio or normalized index.  This service calculates multiple combinations of band ratios and normalized indices, then reduces the results stack into binary classes, water and not-water.  Using the Beachfront-py (http://github.com/venicegeo/beachfront-py), the binary mask is then converted into geojson vectors.
 
-#Operation#
+# Operation
 Bfalg_WTA can be called directly from python, or through the use of a Docker container.  
 
-##Python Syntax:##
+## Python Syntax:
 
 usage: bfalg_WTA.py -i INPUT -o OUTFILE
                     [-m method] [-p sampling percentage] [-v version] [-s simplification tolerance]
@@ -30,7 +30,7 @@ Sample Query:
 
 
 
-##Docker##
+## Docker
 
 A Dockerfile is included for ease of development. The built docker image provides all the system dependencies needed to run the tool. The tool can also be tested locally, but all system dependencies must be installed first, and the use of a virtualenv is recommended.
 
@@ -47,7 +47,7 @@ $docker run -v ~/LocalRapidEyeFolder:/work/data -d wta:latest /bin/bash -c "pyth
 ~~~
 
 
-#Algorithm#
+# Algorithm
 
 
 Beachfront’s Winner-Takes-All shoreline extraction algorithm was designed specifically for RapidEye, though it could likely be modified for use with Landsat-8, PlanetScope, and other MSI image sources.
