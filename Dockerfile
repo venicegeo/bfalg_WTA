@@ -29,7 +29,7 @@ RUN \
     pip install cython; \
     pip install -r requirements.txt
 RUN cd /work
-RUN git clone https://github.com/venicegeo/bfalg_WTA
+RUN git clone -b develop https://github.com/venicegeo/bfalg_WTA
 #COPY bfalg_WTA/WTA /work
 RUN cp -r bfalg_WTA/WTA/* /work
 RUN mkdir data

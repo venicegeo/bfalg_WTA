@@ -363,8 +363,7 @@ if __name__ == '__main__':
     if out_path is None:
         usage()
 
-    #simplification is currently broken
-    simple = None
+#    simple = None # disable simplification for testing
 
     if int(version) == 2:
         WTA_v2(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
