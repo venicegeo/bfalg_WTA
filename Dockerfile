@@ -1,4 +1,4 @@
-# Copyright 2016, RadiantBlue Technologies, Inc.
+# Copyright 2017, RadiantBlue Technologies, Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@ COPY requirements.txt /work/requirements.txt
 RUN \
     pip install cython; \
     pip install -r requirements.txt
-
+RUN cd /work
+RUN git clone https://github.com/venicegeo/bfalg_WTA
+#COPY bfalg_WTA/WTA /work
+RUN cp -r bfalg_WTA/WTA/* /work
+RUN mkdir data
 CMD /bin/bash
 

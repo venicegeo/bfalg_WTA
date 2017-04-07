@@ -291,14 +291,14 @@ def VectorizeBinary(binary,outName=None, simple=None):
 
     return geojson
 
-def WTA_deprecated(img_path, outName=None, method=1, percentage=0.25, simple=None):
+def WTA_v1(img_path, outName=None, method=1, percentage=0.25, simple=None):
     s1 = outName.find('.')
     tempOut = '%s_binary.tif' % outName[:s1]
     WinnerTakesAll(img_path, outName = tempOut, method=method, percentage=percentage)
     VectorizeBinary(tempOut, outName=outName, simple=simple)
 
 
-def WTA_Service(img_path, outName=None, method=1, percentage=0.25, simple=None):
+def WTA_v2(img_path, outName=None, method=1, percentage=0.25, simple=None):
     s1 = outName.find('.')
     #tempOut = '%s_binary.tif' % outName[:s1]
     binary = WinnerTakesAll(img_path, method=method, percentage=percentage)
@@ -340,7 +340,7 @@ if __name__ == '__main__':
     out_path = None
     method = 1
     percentage = 0.25
-    version = None
+    version = 1
     simple = None
 
     for i in range(len(sys.argv)-1):
@@ -354,7 +354,7 @@ if __name__ == '__main__':
         elif arg == '-p':
             percentage = float(sys.argv[i+1])
         elif arg == '-v':
-            version = float(sys.argv[i+1])
+            version = int(sys.argv[i+1])
         elif arg == '-s':
             simple = float(sys.argv[i+1])
 
@@ -363,8 +363,11 @@ if __name__ == '__main__':
     if out_path is None:
         usage()
 
-    if version is not None:
-        WTA_deprecated(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
+    #simplification is currently broken
+    simple = None
+
+    if int(version) == 2:
+        WTA_v2(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
     else:
-        WTA_Service(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
+        WTA_v1(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
     sys.exit(0)

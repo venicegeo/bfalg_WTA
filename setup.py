@@ -32,7 +32,7 @@ with open(os.path.join(here, 'requirements-dev.txt'), encoding='utf-8') as f:
 tests_require =[x.strip() for x in treqs if 'git+' not in x]
 
 setup(
-    name='beachfrontWTA',
+    name='wta',
     version=__version__,
     description='library extracting coastline regions from RapidEye raster data',
     author='Barnabas Sprague (BarnabasSprague)',
