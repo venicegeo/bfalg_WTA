@@ -324,6 +324,16 @@ def WTA_v2(img_path, outName=None, method=1, percentage=0.25, simple=None):
     return geojson
 
 
+def readImage(img_path):
+    # open image raster
+    rs = gdal.Open(img_path)
+    img = rs.ReadAsArray()
+    if img.ndim > 2:
+        img = np.rollaxis(img, 0, 3)
+    rs = None
+    return img
+
+
 def usage():
     print("""
           Usage:
