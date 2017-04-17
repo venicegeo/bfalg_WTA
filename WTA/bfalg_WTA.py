@@ -219,7 +219,7 @@ def saveArrayAsRaster(rasterfn, newRasterfn, array):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 
-def WinnerTakesAll(img_path, outName=None, method=1, percentage=0.25):
+def WinnerTakesAll(img_path, outName=None, method=4, percentage=0.25):
     # check assertions
     
     # open image raster
@@ -291,14 +291,14 @@ def VectorizeBinary(binary,outName=None, simple=None):
 
     return geojson
 
-def WTA_v1(img_path, outName=None, method=1, percentage=0.25, simple=None):
+def WTA_v1(img_path, outName=None, method=4, percentage=0.25, simple=None):
     s1 = outName.find('.')
     tempOut = '%s_binary.tif' % outName[:s1]
     WinnerTakesAll(img_path, outName = tempOut, method=method, percentage=percentage)
     VectorizeBinary(tempOut, outName=outName, simple=simple)
 
 
-def WTA_v2(img_path, outName=None, method=1, percentage=0.25, simple=None):
+def WTA_v2(img_path, outName=None, method=4, percentage=0.25, simple=None):
     s1 = outName.find('.')
     #tempOut = '%s_binary.tif' % outName[:s1]
     binary = WinnerTakesAll(img_path, method=method, percentage=percentage)
@@ -348,7 +348,7 @@ if __name__ == '__main__':
 
     img_path = None
     out_path = None
-    method = 1
+    method = 4
     percentage = 0.25
     version = 1
     simple = None
