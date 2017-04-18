@@ -291,14 +291,14 @@ def VectorizeBinary(binary,outName=None, simple=None):
 
     return geojson
 
-def WTA_v1(img_path, outName=None, method=4, percentage=0.25, simple=None):
+def WTA_v1(img_path, outName=None, method=4, percentage=0.25, simple=None, minsize=None):
     s1 = outName.find('.')
     tempOut = '%s_binary.tif' % outName[:s1]
     WinnerTakesAll(img_path, outName = tempOut, method=method, percentage=percentage)
-    VectorizeBinary(tempOut, outName=outName, simple=simple)
+    VectorizeBinary(tempOut, outName=outName, simple=simple, minsize=minsize)
 
 
-def WTA_v2(img_path, outName=None, method=4, percentage=0.25, simple=None):
+def WTA_v2(img_path, outName=None, method=4, percentage=0.25, simple=None, minsize=None):
     s1 = outName.find('.')
     #tempOut = '%s_binary.tif' % outName[:s1]
     binary = WinnerTakesAll(img_path, method=method, percentage=percentage)
@@ -308,7 +308,7 @@ def WTA_v2(img_path, outName=None, method=4, percentage=0.25, simple=None):
 
     # vectorize thresholded (ie now binary) image
     geoimg.set_nodata(3)
-    coastline = bfvec.potrace(geoimg)
+    coastline = bfvec.potrace(geoimg, minsize=minsize)
 
     # convert coordinates to GeoJSON
     geojson = bfvec.to_geojson(coastline, source=geoimg.basename())
@@ -339,7 +339,8 @@ def usage():
           Usage:
           bfalg_WTA -i in_raster -o out_raster
           -m method (optional, default=1)
-          -p sampling percentage (optional, default=0.25)"""
+          -p sampling percentage (optional, default=0.25)
+          -minsize minimum line length"""
           )
     sys.exit(1)
 
@@ -352,6 +353,7 @@ if __name__ == '__main__':
     percentage = 0.25
     version = 1
     simple = None
+    minsize = 100.0
 
     for i in range(len(sys.argv)-1):
         arg = sys.argv[i]
@@ -367,6 +369,8 @@ if __name__ == '__main__':
             version = int(sys.argv[i+1])
         elif arg == '-s':
             simple = float(sys.argv[i+1])
+        elif arg == '-minsize':
+            minsize = float(sys.argv[i+1])
 
     if img_path is None:
         usage()
@@ -376,7 +380,7 @@ if __name__ == '__main__':
 #    simple = None # disable simplification for testing
 
     if int(version) == 2:
-        WTA_v2(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
+        WTA_v2(img_path, outName=out_path, method=method, percentage=percentage, simple=simple, minsize=minsize)
     else:
-        WTA_v1(img_path, outName=out_path, method=method, percentage=percentage, simple=simple)
+        WTA_v1(img_path, outName=out_path, method=method, percentage=percentage, simple=simple, minsize=minsize)
     sys.exit(0)
