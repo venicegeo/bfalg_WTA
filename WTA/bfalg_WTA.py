@@ -57,13 +57,11 @@ def getRandomSample(img,nSamples=None, percentSample=None, coordMap=0):
     coordTracker = np.zeros([y,x], dtype='uint8')
     coords = [int(x/2), int(y/2)]
     yCoord,xCoord = coords[1], coords[0]
-    #print yCoord, xCoord
     for i in range(nSamples):
         while coordTracker[yCoord,xCoord] == 255:
             coords = getRandomCoordinate(x-1,y-1)
             yCoord,xCoord = coords[1], coords[0]
         coordTracker[yCoord,xCoord] = 255
-        #print yCoord, xCoord
         sampleImg[i,:] = img[yCoord,xCoord,:]
     if coordMap==1:
         imshow(coordTracker, 'gray')
@@ -86,7 +84,6 @@ def BuildWaterMasks(img):
         mask = np.where(img[:,:,5] == 0)
     else:
         mask = np.where(img[:,:,0] <= 0)
-    #mask = np.where(img[:,:,5] == 0)
     for i in range(4):
         temp = indices[:,:,i]
         temp[mask] = 0
@@ -167,7 +164,6 @@ def xO_GM(inImg, percentage=0.25, n_clusters=2):
 
 def saveArrayAsRaster(rasterfn, newRasterfn, array):
     raster = gdal.Open(rasterfn)
-    # nBands = raster.count
     checksum = array.ndim
     if checksum == 3:
         temp = array.shape
@@ -252,8 +248,7 @@ def WinnerTakesAll(img_path, outName=None, method=4, percentage=0.25):
     if binary is None:
         print 'Error: No binary image generated.  Check arguments and retry'
         return None
-    
-    #binary[binary == 0] = 2    
+       
     binary[mask]=0
     # save as tif
     if outName is not None:
@@ -264,7 +259,7 @@ def WinnerTakesAll(img_path, outName=None, method=4, percentage=0.25):
         return binary
    
 
-def VectorizeBinary(binary,outName=None, simple=None):
+def VectorizeBinary(binary,outName=None, simple=None, minsize=None):
     # ISSUES:
     #       Has to be read by gippy from file, so intermediate binary image needs to be written to file
 
@@ -272,12 +267,8 @@ def VectorizeBinary(binary,outName=None, simple=None):
     imgSrc = gippy.GeoImage(binary)
     geoimg = imgSrc[0]
     # vectorize thresholded (ie now binary) image
-    #b = (geoimg[0] == 1)
-    #geoimg[geoimg[0] == 0] = 3
     geoimg.set_nodata(3)
-    #b.set_nodata(0)
-    #coastline = bfvec.potrace(b)
-    coastline = bfvec.potrace(geoimg)
+    coastline = bfvec.potrace(geoimg, minsize)
     # convert coordinates to GeoJSON
     geojson = bfvec.to_geojson(coastline, source=geoimg.basename())
 
