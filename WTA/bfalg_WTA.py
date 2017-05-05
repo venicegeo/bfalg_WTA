@@ -325,6 +325,22 @@ def readImage(img_path):
     return img
 
 
+def BuildImgStack(bands, outName):
+    s1 = outName.find('.')
+    tempOut = '%s_Stack.tif' % outName[:s1]
+    img = readImage(bands[0])
+    y,x = img.shape
+    outImg = np.zeros([y,x,5], dtype=img.dtype)
+    for i in range(len(bands)):
+        img = readImage(bands[i])
+        outImg[:,:,i] = img
+    saveArrayAsRaster(bands[0],
+                      tempOut,
+                      outImg)
+    return tempOut
+    
+
+
 def usage():
     print("""
           Usage:
@@ -345,11 +361,18 @@ if __name__ == '__main__':
     version = 1
     simple = None
     minsize = 100.0
+    b1 = None
+    b2 = None
+    b3 = None
+    b4 = None
+    b5 = None
+    testCondition = 0
 
     for i in range(len(sys.argv)-1):
         arg = sys.argv[i]
         if arg == '-i':
             img_path = sys.argv[i+1]
+            testCondition = testCondition + 5
         elif arg == '-o':
             out_path = sys.argv[i+1]
         elif arg == '-m':
@@ -362,14 +385,32 @@ if __name__ == '__main__':
             simple = float(sys.argv[i+1])
         elif arg == '-minsize':
             minsize = float(sys.argv[i+1])
+        elif arg == '-b1':
+            b1 = (sys.argv[i+1])
+            testCondition = testCondition + 1
+        elif arg == '-b2':
+            b2 = (sys.argv[i+1])
+            testCondition = testCondition + 1
+        elif arg == '-b3':
+            b3 = (sys.argv[i+1])
+            testCondition = testCondition + 1
+        elif arg == '-b4':
+            b4 = (sys.argv[i+1])
+            testCondition = testCondition + 1
+        elif arg == '-b5':
+            b5 = (sys.argv[i+1])
+            testCondition = testCondition + 1
 
-    if img_path is None:
+
+    if testCondition != 5:
         usage()
     if out_path is None:
         usage()
 
 #    simple = None # disable simplification for testing
 
+    if b1 is not None:
+        img_path = BuildImgStack([b1,b2,b3,b4,b5], outName=out_path)
     if int(version) == 2:
         WTA_v2(img_path, outName=out_path, method=method, percentage=percentage, simple=simple, minsize=minsize)
     else:
