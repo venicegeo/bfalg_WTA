@@ -75,6 +75,6 @@ def test_WTA_v1():
     assert os.path.exists('test/fixtures/results_v1.geojson')
 
 def test_WTA_v2():
-    result = wta.WTA_v2('test/fixtures/image1.tif', outName='test/fixtures/results_v2.geojson', percentage=0.05)#, simple=0.00035)
+    result = wta.WTA_v2('test/fixtures/image1.tif', outName='test/fixtures/results_v2.geojson', percentage=0.05, minsize=100.0)#, simple=0.00035)
     assert os.path.exists('test/fixtures/results_v2.geojson')
 

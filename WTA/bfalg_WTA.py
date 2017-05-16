@@ -91,35 +91,52 @@ def BuildWaterMasks(img):
     return indices
 
 
-def xO_Kmeans(inImg,percentage=0.25,n_clusters=2):
+def xO_Kmeans(inImg,percentage=0.25,n_clusters=2, mask=None):
     y,x,z = inImg.shape
+    if mask is None:
+        mask = inImg[:,:,0] * 1
+        mask[:,:] = 1
+    test = sklearn.mixture.GMM(n_components=n_clusters)
+    subset = inImg[np.where(mask == 1)]
+    i,j = subset.shape
+    s2 = np.reshape(subset, [i,1,j])
     test = sklearn.cluster.KMeans(n_clusters=n_clusters, init='random')
-    sample = getRandomSample(inImg, percentSample=percentage)
+    sample = getRandomSample(s2, percentSample=percentage)
     test2 = test.fit(sample)
     data = np.reshape(inImg,[y*x,z])
     test3 = test2.predict(data)
     test4 = np.reshape(test3, [y,x])
     test4 = test4.astype('uint8')
+    test4[np.where(mask != 1)]= 0
     return test4
 
 
-def xO_FA(inImg,percentage=0.25,n_clusters=2):
+def xO_FA(inImg,percentage=0.25,n_clusters=2, mask=None):
     y,x,z = inImg.shape
+    if mask is None:
+        mask = inImg[:,:,0] * 1
+        mask[:,:] = 1
+    test = sklearn.mixture.GMM(n_components=n_clusters)
+    subset = inImg[np.where(mask == 1)]
+    i,j = subset.shape
+    s2 = np.reshape(subset, [i,1,j])
+    print s2.min()
     test = sklearn.cluster.FeatureAgglomeration(n_clusters=1)
-    sample = getRandomSample(inImg, percentSample=percentage)
+    sample = getRandomSample(s2, percentSample=percentage)
     test2 = test.fit(sample)
     data = np.reshape(inImg,[y*x,z])
     inImg = None
     test3 = test2.transform(data)
     data = None
     outImg = np.reshape(test3,[y,x])
-    thresh = threshold_otsu(outImg)
+    thresh = threshold_otsu(outImg[np.where(mask == 1)])
     outImg = outImg > thresh
     outImg = outImg.astype('uint8')
+    outImg[np.where(mask != 1)]= 0
     return outImg
 
 
-def xO_PCA_inMem(img, n_bands=3, ot='float16'):
+def xO_PCA_inMem(img, n_bands=3, ot='float16', mask=None):
     x,y,z = img.shape
     test = np.reshape(img,((x * y),z))
     pca_transf = PCA(n_components=n_bands)
@@ -141,24 +158,37 @@ def xO_PCA_inMem(img, n_bands=3, ot='float16'):
     return outImg_rs
 
 
-def PCA_Binary_Thresh(inImg):
+def PCA_Binary_Thresh(inImg, mask=None):
+    if mask is None:
+        mask = inImg[:,:,0] * 1
+        mask[:,:] = 1
     temp = xO_PCA_inMem(inImg, n_bands=1)[:,:,0]
-    thresh = threshold_otsu(temp)
+    thresh = threshold_otsu(temp[np.where(mask == 1)])
     temp = temp >= thresh
     temp = temp.astype('uint8')
+    temp[np.where(mask != 1)]= 0
     return temp
 
 
 # deprecated.  In 0.18+ its GaussianMixture
-def xO_GM(inImg, percentage=0.25, n_clusters=2):
+def xO_GM(inImg, percentage=0.25, n_clusters=2, mask=None):
     y,x,z = inImg.shape
+    if mask is None:
+        mask = inImg[:,:,0] * 1
+        mask[:,:] = 1
     test = sklearn.mixture.GMM(n_components=n_clusters)
-    sample = getRandomSample(inImg, percentSample=percentage)
+    print inImg.shape
+    print mask.shape
+    subset = inImg[np.where(mask == 1)]
+    i,j = subset.shape
+    s2 = np.reshape(subset, [i,1,j])
+    sample = getRandomSample(s2, percentSample=percentage)
     test2 = test.fit(sample)
     data = np.reshape(inImg,[y*x,z])
     test3 = test2.predict(data)
     test4 = np.reshape(test3, [y,x])
     test4 = test4.astype('uint8')
+    test4[np.where(mask != 1)]= 0
     return test4
 
 
@@ -215,7 +245,7 @@ def saveArrayAsRaster(rasterfn, newRasterfn, array):
     outRaster.SetProjection(outRasterSRS.ExportToWkt())
     outband.FlushCache()
 
-def WinnerTakesAll(img_path, outName=None, method=4, percentage=0.25):
+def WinnerTakesAll(img_path, outName=None, method=4, percentage=0.25, ndMask=None):
     # check assertions
     
     # open image raster
@@ -233,18 +263,24 @@ def WinnerTakesAll(img_path, outName=None, method=4, percentage=0.25):
     else:
         mask = np.where(img[:,:,0] <= 0)
     img = None
-    
+    if ndMask is None:
+        mask = np.zeros([y,x], dtype='uint8')
+        mask[:,:] = 1
+    else:
+        ms = gdal.Open(ndMask)
+        m_b1 = ms.GetRasterBand(1)
+        mask = m_b1.ReadAsArray()
     binary = None
     # Convert to binary
     method = int(method)
     if method == 1:
-        binary = xO_GM(waterIndices, percentage=percentage, n_clusters=2)
+        binary = xO_GM(waterIndices, percentage=percentage, n_clusters=2, mask=mask)
     if method == 2:
-        binary = xO_Kmeans(waterIndices, percentage=percentage, n_clusters=2)
+        binary = xO_Kmeans(waterIndices, percentage=percentage, n_clusters=2, mask=mask)
     if method == 3:
-        binary = xO_FA(waterIndices, percentage=percentage, n_clusters=2)
+        binary = xO_FA(waterIndices, percentage=percentage, n_clusters=2, mask=mask)
     if method == 4:
-        binary = PCA_Binary_Thresh(waterIndices)
+        binary = PCA_Binary_Thresh(waterIndices, mask=mask)
     if binary is None:
         print 'Error: No binary image generated.  Check arguments and retry'
         return None
@@ -282,17 +318,17 @@ def VectorizeBinary(binary,outName=None, simple=None, minsize=None):
 
     return geojson
 
-def WTA_v1(img_path, outName=None, method=4, percentage=0.25, simple=None, minsize=None):
+def WTA_v1(img_path, outName=None, method=4, percentage=0.25, simple=None, minsize=None, ndMask=None):
     s1 = outName.find('.')
     tempOut = '%s_binary.tif' % outName[:s1]
-    WinnerTakesAll(img_path, outName = tempOut, method=method, percentage=percentage)
+    WinnerTakesAll(img_path, outName = tempOut, method=method, percentage=percentage, ndMask=ndMask)
     VectorizeBinary(tempOut, outName=outName, simple=simple, minsize=minsize)
 
 
-def WTA_v2(img_path, outName=None, method=4, percentage=0.25, simple=None, minsize=None):
+def WTA_v2(img_path, outName=None, method=4, percentage=0.25, simple=None, minsize=None, ndMask=None):
     s1 = outName.find('.')
     #tempOut = '%s_binary.tif' % outName[:s1]
-    binary = WinnerTakesAll(img_path, method=method, percentage=percentage)
+    binary = WinnerTakesAll(img_path, method=method, percentage=percentage, ndMask=ndMask)
     imgSrc = gippy.GeoImage(img_path)
     geoimg= gippy.GeoImage.create_from(imgSrc, '', nb=1, dtype='byte', format='MEM')
     geoimg.write(binary)
@@ -338,7 +374,38 @@ def BuildImgStack(bands, outName):
                       tempOut,
                       outImg)
     return tempOut
-    
+
+
+def BuildMask(nodata, img_path, outName=None):
+    rs = gdal.Open(img_path)
+    rb = rs.GetRasterBand(1)
+    img = rb.ReadAsArray()
+    y,x  = img.shape
+    mask = np.zeros([y,x], dtype='uint8')
+    mask[np.where(img != int(nodata))] = 1
+
+    if outName is not None:
+        saveArrayAsRaster(img_path,
+                          outName,
+                          mask)
+    else:
+        return mask
+
+
+def BuildNullMask(img_path, outName=None):
+    rs = gdal.Open(img_path)
+    rb = rs.GetRasterBand(1)
+    img = rb.ReadAsArray()
+    y,x  = img.shape
+    mask = np.zeros([y,x], dtype='uint8')
+    mask[:,:] = 1
+
+    if outName is not None:
+        saveArrayAsRaster(img_path,
+                          outName,
+                          mask)
+    else:
+        return mask
 
 
 def usage():
@@ -367,6 +434,8 @@ if __name__ == '__main__':
     b4 = None
     b5 = None
     testCondition = 0
+    nodata = None
+    ndMask = None
 
     for i in range(len(sys.argv)-1):
         arg = sys.argv[i]
@@ -400,6 +469,10 @@ if __name__ == '__main__':
         elif arg == '-b5':
             b5 = (sys.argv[i+1])
             testCondition = testCondition + 1
+        elif arg == '-nodata':
+            nodata = (sys.argv[i+1])
+        elif arg == '-mask':
+            ndMask = (sys.argv[i+1])
 
 
     if testCondition != 5:
@@ -409,10 +482,22 @@ if __name__ == '__main__':
 
 #    simple = None # disable simplification for testing
 
+
     if b1 is not None:
         img_path = BuildImgStack([b1,b2,b3,b4,b5], outName=out_path)
+    if nodata is not None:
+        s1 = out_path.find('.')
+        ndMask = '%s_ndMask.tif' % out_path[:s1]
+        BuildMask(nodata, img_path, outName=ndMask)
+    if ndMask is None:
+        print 'building nullmask'
+        s1 = out_path.find('.')
+        ndMask = '%s_ndMask.tif' % out_path[:s1]
+        BuildNullMask(img_path, outName=ndMask)
+
+
     if int(version) == 2:
-        WTA_v2(img_path, outName=out_path, method=method, percentage=percentage, simple=simple, minsize=minsize)
+        WTA_v2(img_path, outName=out_path, method=method, percentage=percentage, simple=simple, minsize=minsize, ndMask=ndMask)
     else:
-        WTA_v1(img_path, outName=out_path, method=method, percentage=percentage, simple=simple, minsize=minsize)
+        WTA_v1(img_path, outName=out_path, method=method, percentage=percentage, simple=simple, minsize=minsize, ndMask=ndMask)
     sys.exit(0)
