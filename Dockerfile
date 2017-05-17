@@ -35,7 +35,9 @@ WORKDIR /work/bfalg_WTA
 RUN python setup.py sdist
 RUN python setup.py install
 WORKDIR /work
-#RUN cp -r bfalg_WTA/WTA/* /work
+RUN cp /work/bfalg_WTA/WTA/bfalg_WTA.py /usr/local/bin
+RUN chmod 7777 /usr/local/bin/bfalg_WTA.py
+RUN cp -r bfalg_WTA/WTA/* /work
 RUN mkdir data
 #RUN nosetests
 CMD /bin/bash
