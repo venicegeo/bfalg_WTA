@@ -32,13 +32,10 @@ RUN pip install nose==1.3.7
 
 RUN git clone -b develop https://github.com/venicegeo/bfalg_WTA
 WORKDIR /work/bfalg_WTA
-RUN ls
 RUN python setup.py sdist
 RUN python setup.py install
-#RUN python /work/bfalg_WTA/setup.py sdist
-#RUN python /work/bfalg_WTA/setup.py install
-#RUN cp -r bfalg_WTA/WTA/* /work
 WORKDIR /work
+#RUN cp -r bfalg_WTA/WTA/* /work
 RUN mkdir data
 #RUN nosetests
 CMD /bin/bash
