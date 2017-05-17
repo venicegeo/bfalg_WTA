@@ -29,9 +29,16 @@ RUN \
     pip install cython; \
     pip install -r requirements.txt
 RUN pip install nose==1.3.7
-RUN cd /work
+
 RUN git clone -b develop https://github.com/venicegeo/bfalg_WTA
-RUN cp -r bfalg_WTA/WTA/* /work
+WORKDIR /work/bfalg_WTA
+RUN ls
+RUN python setup.py sdist
+RUN python setup.py install
+#RUN python /work/bfalg_WTA/setup.py sdist
+#RUN python /work/bfalg_WTA/setup.py install
+#RUN cp -r bfalg_WTA/WTA/* /work
+WORKDIR /work
 RUN mkdir data
 #RUN nosetests
 CMD /bin/bash

@@ -46,6 +46,7 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     packages=find_packages(exclude=['docs', 'tests*']),
+    scripts=['WTA/bfalg_WTA.py'],
     include_package_data=True,
     install_requires=install_requires,
     tests_require=tests_require,
