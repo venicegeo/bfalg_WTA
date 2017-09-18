@@ -1,4 +1,4 @@
-# Copyright 2016, RadiantBlue Technologies, Inc.
+# Copyright 2017, RadiantBlue Technologies, Inc.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,17 @@ COPY requirements.txt /work/requirements.txt
 RUN \
     pip install cython; \
     pip install -r requirements.txt
+RUN pip install nose==1.3.7
 
+RUN git clone -b develop https://github.com/venicegeo/bfalg_WTA
+WORKDIR /work/bfalg_WTA
+RUN python setup.py sdist
+RUN python setup.py install
+WORKDIR /work
+RUN cp /work/bfalg_WTA/WTA/bfalg_WTA.py /usr/local/bin
+RUN chmod 7777 /usr/local/bin/bfalg_WTA.py
+RUN cp -r bfalg_WTA/WTA/* /work
+RUN mkdir data
+#RUN nosetests
 CMD /bin/bash
 
