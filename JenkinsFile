@@ -78,7 +78,7 @@ stage("Dependency Check") {
 			sh """
           		  export PATH="$root/miniconda2/bin:$PATH" && source activate bfalg-wta
           		  /opt/hp_fortify_sca/bin/sourceanalyzer -b ${fortifyBuild} -python-path `python -c "import sys;print ':'.join(sys.path)"` {*.py,**/*.py}
-          		  /opt/hp_fortify_sca/bin/sourceanalyzer -b ${fortifyBuild} -scan -python-path `python -c "import sys;print ':'.join(sys.path)"` -Xmx1G -f fortifyResults-${fortifyBuild}.fpr
+          		  /opt/hp_fortify_sca/bin/sourceanalyzer -b ${fortifyBuild} -scan -python-path `python -c "import sys;print ':'.join(sys.path)"` -Xmx8G -f fortifyResults-${fortifyBuild}.fpr
           		  source deactivate
           		  ls
         		"""
