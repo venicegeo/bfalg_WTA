@@ -30,7 +30,7 @@ node {
               export PATH="$root/miniconda2/bin:$PATH"
               conda config --add channels `echo "${env.CONDA_CHANNEL_URL}" | sed "s#://#://${NUSER}:${NPASS}@#g"`
               cd bfalg-wta
-              conda env create -f environment.yml -q
+              conda env create -f environment-dev.yml -q
             """
         }
     }
@@ -53,9 +53,9 @@ stage("Dependency Check") {
         ]) {
 		dir("bfalg-wta") {
 			sh """
-          		  export PATH="$root/miniconda2/bin:$PATH" && source activate bfalg-wta
-          		  /opt/hp_fortify_sca/bin/sourceanalyzer -b ${fortifyBuild} -python-path `python -c "import sys;print ':'.join(sys.path)"` {*.py,**/*.py}
-          		  /opt/hp_fortify_sca/bin/sourceanalyzer -b ${fortifyBuild} -scan -python-path `python -c "import sys;print ':'.join(sys.path)"` -Xmx1G -f fortifyResults-${fortifyBuild}.fpr
+          		  export PATH="$root/miniconda2/bin:$PATH" && source activate bfalg-wta-dev
+          		  /opt/hp_fortify_sca/bin/sourceanalyzer -b ${fortifyBuild} -python-path `python -c "import sys;print ':'.join(sys.path)"` ./{*.py,**/*.py}
+          		  /opt/hp_fortify_sca/bin/sourceanalyzer -b ${fortifyBuild} -scan -python-path `python -c "import sys;print ':'.join(sys.path)"` -Xmx16G -f fortifyResults-${fortifyBuild}.fpr
           		  source deactivate
           		  ls
         		"""
